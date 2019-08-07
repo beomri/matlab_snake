@@ -1,49 +1,61 @@
-function snake
+function snake(varargin)
 %{
 TODO:
 remember fast pressing for next direction change
 add obstacles
-add wrapping
 order colisiion detector
+fix bug where cant restrat if pressing arrows after losing 
+difficulty slider
 %}
-RANGE = 15;
+
+p = inputParser;
+addParameter(p,'Size',15)
+addParameter(p,'Warp',false)
+addParameter(p,'Speed',2,@(x) x==1 || x==2 || x==3)
+
+parse(p,varargin{:});
+
+
+
+bsize = p.Results.Size;
+warp = p.Results.Warp;
+difficulty = p.Results.Speed;
+
+
 BOXSIZE = [1 1];
-START_POS = floor(RANGE/2) * [1 1];
+START_POS = floor(bsize/2) * [1 1];
 RIGHT = [1 0 0 0];
 UP = [0 1 0 0];
 LEFT = [-1 0 0 0];
 DOWN = [0 -1  0 0];
 SPEEDS = [0.12 0.08 0.05];
 
-change_dir = true;
-difficulty = 2;
-
 figure('KeyPressFcn',@Key_Down);
 axis equal;
-axis([0 RANGE 0 RANGE]);
-xlim([0 RANGE]);
-ylim([0 RANGE]);
+axis([0 bsize 0 bsize]);
+xlim([0 bsize]);
+ylim([0 bsize]);
 xticks([]);
 yticks([]);
 xlabel('use arrow keys');
 
 head_pos = [START_POS BOXSIZE];
+change_dir = true;
 cur_dir = 0;
-rects = rectangle('Position',head_pos,'FaceColor','g','EdgeColor','k');
+rects = [];
 
 food_pos = [0 0];
 food = rectangle('Position',[food_pos BOXSIZE]);
 food.FaceColor='r';
-place_food;
 
 points = 0;
-title(['Points: ' num2str(points)]);
 
 t = timer;
 t.ExecutionMode = 'fixedRate';
 t.TimerFcn = @pass_time;
 t.Period = SPEEDS(difficulty);
-start(t);
+
+restart;
 
     function Key_Down(hObject, ~, ~)
         if change_dir
@@ -87,24 +99,24 @@ start(t);
             new_r = rectangle('Position',[food_pos BOXSIZE],'FaceColor','g','EdgeColor','g');
             rects = [rects new_r];
             place_food;
-            points = points+10;
+            points = points + 10;
             title(['Points: ' num2str(points)]);
         end
-        axis([0 RANGE 0 RANGE]);
+        axis([0 bsize 0 bsize]);
     end
 
     function move_objects
         rects(1).EdgeColor = 'g';
         rects = circshift(rects,1);
-        head_pos = head_pos + cur_dir;
+        head_pos = mod(head_pos + cur_dir, bsize * warp);
         rects(1).Position = head_pos;
         rects(1).EdgeColor = 'k';
     end
 
     function place_food
-        food_pos = randi(RANGE-1, [1 2]);
+        food_pos = randi(bsize-1, [1 2]);
         while check_collision(food_pos, rects)
-            food_pos = randi(RANGE-1, [1 2]);
+            food_pos = randi(bsize-1, [1 2]);
         end
         food.Position = [food_pos BOXSIZE];
     end
@@ -123,7 +135,7 @@ start(t);
         pos = r.Position;
         x = pos(1);
         y = pos(2);
-        bound = x>=0 && y>=0 && x<RANGE && y<RANGE;
+        bound = x>=0 && y>=0 && x<bsize && y<bsize;
     end
 
     function col_det = self_collision
