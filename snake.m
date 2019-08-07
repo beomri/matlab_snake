@@ -1,10 +1,10 @@
 function snake
 %{
 TODO:
-disable changing direction before moving
+remember fast pressing for next direction change
 add obstacles
-change fps to interval
 add wrapping
+order colisiion detector
 %}
 RANGE = 15;
 BOXSIZE = [1 1];
@@ -14,6 +14,8 @@ UP = [0 1 0 0];
 LEFT = [-1 0 0 0];
 DOWN = [0 -1  0 0];
 SPEEDS = [0.12 0.08 0.05];
+
+change_dir = true;
 difficulty = 2;
 
 figure('KeyPressFcn',@Key_Down);
@@ -44,31 +46,42 @@ t.Period = SPEEDS(difficulty);
 start(t);
 
     function Key_Down(hObject, ~, ~)
-        key = get(hObject,'CurrentKey');
-        switch key
-            case 'rightarrow'
-                if ~isequal(cur_dir, LEFT)
-                    cur_dir = RIGHT;
-                end
-            case 'uparrow'
-                if ~isequal(cur_dir, DOWN)
-                    cur_dir = UP;
-                end
-            case 'leftarrow'
-                if ~isequal(cur_dir, RIGHT)
-                    cur_dir = LEFT;
-                end
-            case 'downarrow'
-                if ~isequal(cur_dir, UP)
-                    cur_dir = DOWN;
-                end
+        if change_dir
+            key = get(hObject,'CurrentKey');
+            switch key
+                case 'rightarrow'
+                    if ~isequal(cur_dir, LEFT) && ~isequal(cur_dir, RIGHT)
+                        cur_dir = RIGHT;
+                        change_dir = false;
+                    end
+                case 'uparrow'
+                    if ~isequal(cur_dir, DOWN) && ~isequal(cur_dir, UP)
+                        cur_dir = UP;
+                        change_dir = false;
+                    end
+                case 'leftarrow'
+                    if ~isequal(cur_dir, LEFT) && ~isequal(cur_dir, RIGHT)
+                        cur_dir = LEFT;
+                        change_dir = false;
+                    end
+                case 'downarrow'
+                    if ~isequal(cur_dir, DOWN) && ~isequal(cur_dir, UP)
+                        cur_dir = DOWN;
+                        change_dir = false;
+                    end
+                case 'space'
+                    stop(t);
+                    restart;
+            end
         end
     end
 
     function pass_time(~, ~, ~)
         move_objects;
+        change_dir = true;
         if ~is_in_bounds(rects(1)) || self_collision
             stop(t);
+            xlabel({'use arrow keys' ; 'Game over. Press space to restart.'});
         end
         if check_collision(food_pos, rects(1))
             new_r = rectangle('Position',[food_pos BOXSIZE],'FaceColor','g','EdgeColor','g');
@@ -118,6 +131,20 @@ start(t);
         if length(rects) > 1
             col_det = check_collision(rects(1).Position(1:2), rects(2:end));
         end
+    end
+
+    function restart
+        head_pos = [START_POS BOXSIZE];
+        cur_dir = 0;
+        delete(rects);
+        rects = rectangle('Position',head_pos,'FaceColor','g','EdgeColor','k');
+        
+        place_food;
+        
+        points = 0;
+        title(['Points: ' num2str(points)]);
+        xlabel('use arrow keys');
+        start(t);
     end
 
 end
