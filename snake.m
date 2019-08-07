@@ -4,17 +4,17 @@ TODO:
 disable changing direction before moving
 add obstacles
 change fps to interval
-add difficulty
 add wrapping
 %}
 RANGE = 15;
 BOXSIZE = [1 1];
 START_POS = floor(RANGE/2) * [1 1];
-FPS = 12.5;
 RIGHT = [1 0 0 0];
 UP = [0 1 0 0];
 LEFT = [-1 0 0 0];
 DOWN = [0 -1  0 0];
+SPEEDS = [0.12 0.08 0.05];
+difficulty = 2;
 
 figure('KeyPressFcn',@Key_Down);
 axis equal;
@@ -40,7 +40,7 @@ title(['Points: ' num2str(points)]);
 t = timer;
 t.ExecutionMode = 'fixedRate';
 t.TimerFcn = @pass_time;
-t.Period = 1/FPS;
+t.Period = SPEEDS(difficulty);
 start(t);
 
     function Key_Down(hObject, ~, ~)
