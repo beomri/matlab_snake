@@ -38,6 +38,7 @@ ylim([0 bsize]);
 xticks([]);
 yticks([]);
 xlabel('use arrow keys');
+box;
 
 head_pos = [START_POS BOXSIZE];
 change_dir = true;
@@ -58,8 +59,12 @@ t.Period = SPEEDS(difficulty);
 restart;
 
     function Key_Down(hObject, ~, ~)
+        key = get(hObject,'CurrentKey');
+        if strcmp(key, 'space')
+            stop(t);
+            restart;
+        end
         if change_dir
-            key = get(hObject,'CurrentKey');
             switch key
                 case 'rightarrow'
                     if ~isequal(cur_dir, LEFT) && ~isequal(cur_dir, RIGHT)
@@ -81,9 +86,6 @@ restart;
                         cur_dir = DOWN;
                         change_dir = false;
                     end
-                case 'space'
-                    stop(t);
-                    restart;
             end
         end
     end
